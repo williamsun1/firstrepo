@@ -1,0 +1,216 @@
+# Set working directory and upload packages
+library(dplyr)
+library(readxl)
+
+setwd("/Users/williamsun/Desktop/YCELP SLS")
+
+spi <- read_excel("SPI Time Series 1990-2020 data file.xlsx", sheet = "1990-2020 Time-series data")
+
+# Get rid of first row
+names(spi) <- spi[1,]
+spi <- spi[-1,]
+head(spi, n=5L)
+
+
+# get rid of non-BHN indicators of SPI
+
+names(spi)
+spi[77]
+
+bhn <- spi[, 1:42]
+
+
+
+
+
+
+Get rid of irrelevant indicators. 
+
+
+```{r}
+
+Basic_Human_Needs <- Basic_Human_Needs[, -c(9, 10, 11, 16:24)]
+
+
+
+```
+
+
+
+Adjust column names: 
+  
+  
+  ```{r}
+
+
+colnames(Basic_Human_Needs) <- Basic_Human_Needs[1, ]
+Basic_Human_Needs <- Basic_Human_Needs[-1, ]
+
+
+
+
+```
+
+
+Open daily caloric supply of capita: 
+  
+  
+  ```{r}
+
+daily_per_capita_caloric_supply <- read.csv("daily-per-capita-caloric-supply.csv")
+
+
+#Exclude Continents and regions: 
+
+daily_per_capita_caloric_supply <- daily_per_capita_caloric_supply %>% filter(Code != "")
+
+
+#adjusting to time series of 1990-2020
+
+daily_per_capita_caloric_supply <- daily_per_capita_caloric_supply[daily_per_capita_caloric_supply$Year >= 1990 & daily_per_capita_caloric_supply$Year <= 2020, ]
+
+
+```
+
+
+
+Add daily calorie supply to SPI time series: 
+  
+  
+  ```{r}
+
+# Rename columns for merging
+names(daily_per_capita_caloric_supply)[names(daily_per_capita_caloric_supply) == "Entity"] <- "Country"
+names(daily_per_capita_caloric_supply)[names(daily_per_capita_caloric_supply) == "Year"] <- "SPI \r\nyear"
+
+
+# Merge datasets by 'Country' and 'SPI year'
+Basic_Human_Needs <- merge(Basic_Human_Needs, daily_per_capita_caloric_supply[, c("Country", "SPI \r\nyear", "Daily.calorie.supply.per.person")],
+                           by = c("Country", "SPI \r\nyear"),
+                           all.x = TRUE)
+
+
+
+```
+
+
+
+
+Open Per Capita Protein supply from all foods per day: 
+  
+  
+  
+  ```{r}
+
+daily_protein_supply_per_person <- read.csv("/Users/justus/Desktop/Yale University Stuff/Tobin Research Assistantship/Basic Human Needs Indicator /protein_supply.csv")
+
+```
+
+
+
+Getting rid of irrelevant columns: 
+  
+  
+  ```{r}
+
+daily_protein_supply_per_person <- daily_protein_supply_per_person[, c(2, 3, 39)]
+
+
+
+```
+
+
+
+add daily protein supply to index: 
+  
+  
+  ```{r}
+# Rename columns for merging
+names(daily_protein_supply_per_person)[names(daily_protein_supply_per_person) == "Country"] <- "Country"
+names(daily_protein_supply_per_person)[names(daily_protein_supply_per_person) == "Year"] <- "SPI \r\nyear"
+
+
+# Merge datasets by 'Country' and 'SPI year'
+Basic_Human_Needs <- merge(Basic_Human_Needs, daily_protein_supply_per_person[, c("Country", "SPI \r\nyear", "Food.supply..Protein.g.per.capita.per.day.")],
+                           by = c("Country", "SPI \r\nyear"),
+                           all.x = TRUE)
+
+```
+
+
+
+
+
+Open Health Life Expectancy (HALE) at birth: 
+  
+  
+  ```{r}
+life_expectancy_at_birth <- read.csv("/Users/justus/Desktop/Yale University Stuff/Tobin Research Assistantship/Basic Human Needs Indicator /Health Life Expectance (HALE) at birth.csv")
+
+```
+
+Get rid of irrelevant columns/variables: 
+  
+  ```{r}
+
+life_expectancy_at_birth <- subset(life_expectancy_at_birth, Indicator == "Healthy life expectancy (HALE) at birth (years)" & Dim1 == "Both sexes")
+life_expectancy_at_birth <- life_expectancy_at_birth[, c(8, 10, 24)]
+
+
+
+```
+
+
+add life expectancy at birth to index: 
+  
+  
+  ```{r}
+# Rename columns for merging
+names(life_expectancy_at_birth)[names(life_expectancy_at_birth) == "Location"] <- "Country"
+names(life_expectancy_at_birth)[names(life_expectancy_at_birth) == "Period"] <- "SPI \r\nyear"
+
+
+# Merge datasets by 'Country' and 'SPI year'
+Basic_Human_Needs <- merge(Basic_Human_Needs, life_expectancy_at_birth[, c("Country", "SPI \r\nyear", "FactValueNumeric")],
+                           by = c("Country", "SPI \r\nyear"),
+                           all.x = TRUE)
+
+
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
